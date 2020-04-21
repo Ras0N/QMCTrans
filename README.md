@@ -5,7 +5,8 @@ QQ音乐解码程序，
 
 参考： https://github.com/MegrezZhu/qmcdump
 
-2020/04/21 Update:
+2020/04/21 Update: 
+
 添加对mflac文件的支持,修复小bug。
 参考：https://github.com/ix64/unlock-music/wiki 对mflac文件的说明。
 
