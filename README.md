@@ -12,13 +12,13 @@ QQ音乐解码程序，
 下面给出几点对Key，也就是掩码的说明：
 *  Key的真实有效位数只有里面44个Byte
 *  Key有周期性，周期为128Byte
-*  Key有对称性，满足对称关系：Key\[i\] = Key\[129-i\]  i>=1
+*  Key有对称性，满足对称关系：Key\[i\] = Key\[128-i\]  i>=1
 
 文件尾部是一个结构体，包含有Key的信息，但是现在无法解密。
 结构体如下：
 `
-struct KeyINFO{
-    string Base64EncryptedKeyInfo;
-    Uint32 sizeofBase64EncryptedKeyInfo;
+struct KeyINFO{\
+    string Base64EncryptedKeyInfo;\
+    Uint32 sizeofBase64EncryptedKeyInfo;\
 }
 `
