@@ -16,9 +16,9 @@ QQ音乐解码程序，
 
 文件尾部是一个结构体，包含有Key的信息，但是现在无法解密。
 结构体如下：
-`
-struct KeyINFO{\
-    string Base64EncryptedKeyInfo;\
-    Uint32 sizeofBase64EncryptedKeyInfo;\
+```
+struct KeyINFO{
+    string Base64EncryptedKeyInfo;
+    Uint32 sizeofBase64EncryptedKeyInfo;
 }
-`
+```
