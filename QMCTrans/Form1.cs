@@ -311,7 +311,7 @@ namespace QMCTrans
             }
             if (findKey)
             {
-                //Only 64 Bytes in UKey is valid.
+                //Only 64 Bytes in UKey are valid.
                 for (int i = 0; i < 64; i++)
                 {
                     NewKey[MagicList[i]] = buffer2[i];
