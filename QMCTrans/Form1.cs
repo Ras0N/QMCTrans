@@ -45,7 +45,17 @@ namespace QMCTrans
         0x3D, 0x1A, 0xFE, 0x20, 0x77, 0xE4, 0xD9, 0xDA, 0xF9, 0xA4, 0x2B, 0x76,
         0x1C, 0x71, 0xDB, 0x00, 0xBC, 0xFD, 0xC,  0x6C, 0xA5, 0x47, 0xF7, 0xF6,
         0x00, 0x79, 0x4A, 0x11};
-
+        private static int[] MagicList =
+        {
+            27 ,28 ,31 ,36 ,43 ,52 ,63 ,76 ,91 ,108,127,148,171,196,223,252,
+            27 ,60 ,95 ,132,171,212,255,44 ,91 ,140,191,244,43 ,100,159,220,
+            27 ,92 ,159,228,43 ,116,191,12 ,91 ,172,255,84 ,171,4  ,95 ,188,
+            27 ,124,223,68 ,171,20 ,127,236,91 ,204,63 ,180,43 ,164,31 ,156,
+            27 ,156,31 ,164,43 ,180,63 ,204,91 ,236,127,20 ,171,68 ,223,124,
+            27 ,188,95 ,4  ,171,84 ,255,172,91 ,12 ,191,116,43 ,228,159,92 ,
+            27 ,220,159,100,43 ,244,191,140,91 ,44 ,255,212,171,132,95 ,60 ,
+            27 ,252,223,196,171,148,127,108,91 ,76 ,63 ,52 ,43 ,36 ,31 ,28 };
+        private int[] NewKey = null;
         private byte Key(int v)
         {
             if (v >= 0)
@@ -55,12 +65,12 @@ namespace QMCTrans
             }
             else
                 v = 0;
-            return Convert.ToByte(UKey[(v * v + 80923) % 256]);
+            return Convert.ToByte(NewKey[(v * v + 80923) % 256]);
         }
         private void onAddButtonClick(object sender, EventArgs e)
         {
             OpenFileDialog ofd = new OpenFileDialog();
-            ofd.Filter = "QQ音乐加密文件|*.qmcflac;*.qmc0;*.qmc3|所有文件|*.*";
+            ofd.Filter = "QQ音乐加密文件|*.qmcflac;*.qmc0;*.qmc3;*.mflac|所有文件|*.*";
             ofd.Title = "打开文件";
             ofd.RestoreDirectory = true;
             ofd.Multiselect = true;
@@ -78,6 +88,7 @@ namespace QMCTrans
                     switch (ext)
                     {
                         case ".qmcflac":
+                        case ".mflac":
                             lvi.SubItems.Add("flac");
                             break;
                         default:
@@ -108,6 +119,7 @@ namespace QMCTrans
                     switch (fFile.Extension.ToLower())
                     {
                         case ".qmcflac":
+                        case ".mflac":
                             var lvi = new ListViewItem();
                             lvi.Text = fFile.FullName;
                             lvi.SubItems.Add("flac");
@@ -221,10 +233,18 @@ namespace QMCTrans
             int N = 0;
             foreach (var stfile in lists)
             {
+                bool res = findUKeyFromFile(stfile);
                 string writeFile = Path.GetDirectoryName(stfile) + '\\' + Path.GetFileNameWithoutExtension(stfile) + '.' + exts[N];
                 if (File.Exists(writeFile) == true)
                 {
                     updateStatueToFileList("完成", N);
+                    N++;
+                    continue;
+                }
+                if(res == false)
+                {
+                    updateStatueToFileList("转换失败", N);
+                    N++;
                     continue;
                 }
                 FileStream fsreadFile = new FileStream(stfile, FileMode.Open);
@@ -259,6 +279,47 @@ namespace QMCTrans
         {
             AboutBox1 about = new AboutBox1();
             about.Show();
+        }
+
+        private bool findUKeyFromFile(string fileName)
+        {
+            if(Path.GetExtension(fileName) != ".mflac")
+            {
+                NewKey = UKey;
+            }
+            NewKey = new int[256];//Gen 256 Byte Key
+            FileStream fStream = new FileStream(fileName, FileMode.Open);
+            BinaryReader bsfReader = new BinaryReader(fStream);
+            byte[] buffer1 = new byte[128];
+            byte[] buffer2 = new byte[128];
+            bsfReader.Read(buffer1, 0, 128);
+            bsfReader.Read(buffer2, 0, 128);
+            bool findKey = false;
+            for(; ; )
+            {
+                if (Enumerable.SequenceEqual(buffer1,buffer2))
+                {
+                    findKey = true;
+                    break;
+                }
+                Buffer.BlockCopy(buffer2, 0, buffer1, 0, buffer2.Length);
+                var readSize = bsfReader.Read(buffer2, 0, 128);
+                if(readSize < 1)
+                {
+                    break;
+                }
+            }
+            if (findKey)
+            {
+                //Only 64 Bytes in UKey is valid.
+                for (int i = 0; i < 64; i++)
+                {
+                    NewKey[MagicList[i]] = buffer2[i];
+                }
+            }
+            bsfReader.Close();
+            fStream.Close();
+            return findKey;
         }
     }
 }
